@@ -2,6 +2,7 @@ import os
 
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
@@ -12,3 +13,4 @@ client = AsyncOpenAI(
 
 MODEL = os.getenv("MODEL")
 DATABASE_URL = os.getenv("DATABASE_URL")
+UPLOAD_DIR = Path("uploaded_files")
