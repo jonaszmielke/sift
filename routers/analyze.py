@@ -8,6 +8,8 @@ from pypdf import PdfReader
 from config import client, MODEL
 from schemas import TenderAnalysis
 
+from uuid import UUID
+
 router = APIRouter()
 
 TENDER_SYSTEM_PROMPT = """You are a tender-analysis extractor. Read the procurement \
@@ -50,8 +52,8 @@ def _strip_fences(s: str) -> str:
     return s.strip()
 
 
-@router.post("/analyze")
-async def analyze(file: UploadFile = File(...)) -> TenderAnalysis:
+@router.post("/tender/{tenderId}/analyze")
+async def analyze(tenderId: UUID, file: UploadFile = File(...)) -> TenderAnalysis:
     content = await file.read()
 
     if not content.startswith(b"%PDF"):
