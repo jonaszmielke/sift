@@ -11,3 +11,4 @@ client = AsyncOpenAI(
 )
 
 MODEL = os.getenv("MODEL")
+DATABASE_URL = os.getenv("DATABASE_URL")
