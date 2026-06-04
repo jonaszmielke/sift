@@ -45,7 +45,7 @@ async def add_file(tenderId: UUID = Form(...), file: UploadFile = File(...), ses
         id=file_id,
         tender_id=tenderId,
         filename=file.filename,
-        extracted_text=None,
+        extracted_text=text,
     )
 
     session.add(fileRow)

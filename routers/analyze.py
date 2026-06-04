@@ -1,47 +1,15 @@
-import asyncio
-import io
-import json
-
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from pypdf import PdfReader
-
-from config import client, MODEL
-from schemas import TenderAnalysis
-
+from lib.tenderAnalysis import runTenderAnalisis
+from datetime import datetime, UTC
 from uuid import UUID
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from database import get_session
+from models import Tender, File as FileModel, TenderStatus
+from pydantic import BaseModel
 
 router = APIRouter()
-
-TENDER_SYSTEM_PROMPT = """You are a tender-analysis extractor. Read the procurement \
-document text and extract structured fields.
-
-Rules:
-- Extract only what is present in the document. Do not invent or guess values.
-- Use null for absent scalar fields; use an empty list for absent list fields.
-- estimated_value: digits only (strip thousands separators and currency symbols); \
-put the currency in the currency field.
-- currency: ISO 4217 code (e.g. EUR, USD, PLN) when determinable.
-- deadline: prefer ISO YYYY-MM-DD (include time if given); else copy verbatim.
-- evaluation_criteria: one entry per distinct criterion (e.g. "Price 60%", \
-"Quality 40%").
-- key_requirements: eligibility, mandatory technical, and documentation requirements, \
-one per entry.
-
-Respond with ONLY a single JSON object matching this schema. No markdown, no code \
-fences, no commentary:
-{schema}
-""".replace("{schema}", json.dumps(TenderAnalysis.model_json_schema()))
-
-
-def extractText(content: bytes):
-    reader = PdfReader(io.BytesIO(content))
-    text = ""
-
-    for page in reader.pages:
-        text += page.extract_text() or ""
-
-    return text
-
 
 def _strip_fences(s: str) -> str:
     s = s.strip()
@@ -51,37 +19,49 @@ def _strip_fences(s: str) -> str:
             s = s[: -3]
     return s.strip()
 
+class AnalyzeTenderRequest(BaseModel):
+    tenderId: UUID
 
 @router.post("/tender/{tenderId}/analyze")
-async def analyze(tenderId: UUID, file: UploadFile = File(...)) -> TenderAnalysis:
-    content = await file.read()
+async def analyze(tenderId: UUID, session: AsyncSession = Depends(get_session)):
 
-    if not content.startswith(b"%PDF"):
-        raise HTTPException(status_code=400, detail="File is not a PDF")
+    tender = await session.get(Tender, tenderId)
+    if tender is None:
+        raise HTTPException(404, "Tender not found")
 
-    text = await asyncio.to_thread(extractText, content)
+    result = await session.exec(select(FileModel).where(FileModel.tender_id == tenderId))
+    files = result.all()
+    if not files:
+        raise HTTPException(400, "Tender has no files")
 
-    if not text.strip():
-        raise HTTPException(status_code=422, detail="No text extracted from PDF")
+    filesHaveText = any(f.extracted_text for f in files)
+    if not filesHaveText:
+        raise HTTPException(422, "No text in files")
 
-    stream = await client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": TENDER_SYSTEM_PROMPT},
-            {"role": "user", "content": text},
-        ],
-        stream=True,
-    )
+    combined: list[str] = []
+    for i in range(len(files)):
+        combined.append(f"File {i + 1}:\n{files[i].extracted_text}")
 
-    parts: list[str] = []
-    async for chunk in stream:
-        delta = chunk.choices[0].delta.content
-        if delta:
-            parts.append(delta)
+    combinedText = "\n\n".join(combined)
 
-    raw = _strip_fences("".join(parts))
+    analysis = await runTenderAnalisis(combinedText)
 
-    try:
-        return TenderAnalysis.model_validate_json(raw)
-    except ValueError:
+    if analysis == False:
         raise HTTPException(status_code=502, detail="Model returned invalid analysis")
+
+    tender.title = analysis.title
+    tender.deadline = analysis.deadline
+    tender.value = analysis.estimated_value
+    tender.currency = analysis.currency
+    tender.procuring_entity = analysis.procuring_entity
+    tender.subject_description = analysis.subject_description
+    tender.evaluation_criteria = analysis.evaluation_criteria
+    tender.key_requirements = analysis.key_requirements
+    tender.analyzed_at = datetime.now(UTC)
+    tender.status = TenderStatus.analyzed
+
+    session.add(tender)
+    await session.commit()
+    await session.refresh(tender)
+
+    return {"message": "Tender analyzed successfully"}
