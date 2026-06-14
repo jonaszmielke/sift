@@ -1,4 +1,4 @@
-from lib.tenderAnalysis import runTenderAnalisis
+from services.tenderAnalysis import runTenderAnalisis
 from datetime import datetime, UTC
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
@@ -50,7 +50,7 @@ async def analyze(tenderId: UUID, session: AsyncSession = Depends(get_session)):
         raise HTTPException(status_code=502, detail="Model returned invalid analysis")
 
     tender.title = analysis.title
-    tender.deadline = analysis.deadline
+    tender.deadline = (datetime.fromisoformat(analysis.deadline) if analysis.deadline else None)
     tender.value = analysis.estimated_value
     tender.currency = analysis.currency
     tender.procuring_entity = analysis.procuring_entity
