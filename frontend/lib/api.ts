@@ -25,7 +25,7 @@ export type FileSummary = {
     filename: string
 }
 
-export type TenderDetail = {
+export type TenderDetails = {
     id: string
     name: string
     status: TenderStatus
@@ -65,5 +65,5 @@ export const fetchTenders = (lastId?: string | null): Promise<TenderListResponse
     return request<TenderListResponse>(`/tenders${qs}`)
 }
 
-export const fetchTender = (id: string): Promise<TenderDetail> =>
-    request<TenderDetail>(`/tender/${encodeURIComponent(id)}`)
+export const fetchTender = (id: string): Promise<TenderDetails> =>
+    request<TenderDetails>(`/tender/${encodeURIComponent(id)}`)

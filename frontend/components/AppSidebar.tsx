@@ -26,11 +26,11 @@ export const AppSidebar = () => {
             {/* user chip */}
             <div className="border-border mt-auto flex items-center gap-[10px] border-t px-[6px] pt-[18px]">
                 <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[#d8d3c8] text-[12px] font-semibold text-muted">
-                    KM
+                    TU
                 </div>
                 <div className="leading-tight">
-                    <div className="text-[13px] font-medium">Krzysztof M.</div>
-                    <div className="text-faint text-[11.5px]">PolBud Sp. z o.o.</div>
+                    <div className="text-[13px] font-medium">Test user</div>
+                    <div className="text-faint text-[11.5px]">Test company</div>
                 </div>
             </div>
         </aside>
