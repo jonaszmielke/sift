@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Fraunces, Geist, Geist_Mono, Newsreader } from 'next/font/google'
 import './globals.css'
+import QueryProvider from '@/components/QueryProvider'
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -12,22 +13,34 @@ const geistMono = Geist_Mono({
     subsets: ['latin'],
 })
 
+const fraunces = Fraunces({
+    variable: '--font-fraunces',
+    weight: ['400', '500', '600'],
+    subsets: ['latin'],
+})
+
+const newsreader = Newsreader({
+    variable: '--font-newsreader',
+    weight: ['400', '500'],
+    subsets: ['latin'],
+})
+
 export const metadata: Metadata = {
     title: 'Sift',
-    description: 'TODO',
+    description: 'Sift through public tenders.',
 }
 
-export default function RootLayout({
-    children,
-}: Readonly<{
-    children: React.ReactNode
-}>) {
+const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
     return (
         <html
             lang="en"
-            className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+            className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${newsreader.variable} h-full antialiased`}
         >
-            <body className="min-h-full flex flex-col">{children}</body>
+            <body className="bg-paper text-ink min-h-full">
+                <QueryProvider>{children}</QueryProvider>
+            </body>
         </html>
     )
 }
+
+export default RootLayout

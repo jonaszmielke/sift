@@ -27,9 +27,39 @@ async def new_tender(body: NewTenderRequest, session: AsyncSession = Depends(get
 
 TENDERS_PER_PAGE = 10
 
-@router.get("/tenders")
+
+class TenderListItem(BaseModel):
+    id: UUID
+    name: str
+    status: TenderStatus
+    value: float | None
+    currency: str | None
+    deadline: datetime | None
+    procuring_entity: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class TenderListResponse(BaseModel):
+    tenders: list[TenderListItem]
+    next_cursor: UUID | None
+
+
+@router.get("/tenders", response_model=TenderListResponse)
 async def get_tenders_list(lastId: str | None = None, session: AsyncSession = Depends(get_session)):
-    query = select(Tender.id, Tender.name, Tender.status).order_by(Tender.id).limit(TENDERS_PER_PAGE)
+    query = (
+        select(
+            Tender.id,
+            Tender.name,
+            Tender.status,
+            Tender.value,
+            Tender.currency,
+            Tender.deadline,
+            Tender.procuring_entity,
+        )
+        .order_by(Tender.id)
+        .limit(TENDERS_PER_PAGE)
+    )
 
     if lastId is not None:
         query = query.where(Tender.id > lastId)
