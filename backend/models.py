@@ -15,7 +15,10 @@ class Tender(SQLModel, table=True):
     name: str 
     status: TenderStatus = TenderStatus.pending
 
-    files: list["File"] = Relationship(back_populates="tender")
+    files: list["File"] = Relationship(
+        back_populates="tender",
+        sa_relationship_kwargs={"order_by": "File.uploaded_at"},
+    )
     
     # analysis fields (nullable until analyzed):
     title: str | None = None
