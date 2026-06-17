@@ -23,7 +23,8 @@ class Conversation(SQLModel, table=True):
     messages: list["Message"] = Relationship(
         back_populates="conversation",
         sa_relationship_kwargs={"order_by": "Message.created_at"},
-        cascade_delete=True
+        cascade_delete=True,
+        passive_deletes=True
     )
 
     updated_at: datetime = Field(

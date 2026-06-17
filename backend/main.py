@@ -6,6 +6,8 @@ from routers.add_file import router as add_file_router
 from routers.analyze import router as analyze_router
 from routers.rag import router as rag_router
 
+from routers.conversation import router as conversation_router
+
 app = FastAPI()
 
 app.add_middleware(
@@ -21,6 +23,7 @@ app.include_router(add_file_router)
 app.include_router(analyze_router)
 app.include_router(rag_router)
 
+app.include_router(conversation_router)
 
 @app.get("/")
 async def root():
