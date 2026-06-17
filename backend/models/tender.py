@@ -6,6 +6,10 @@ from sqlalchemy import Column, JSON
 from sqlmodel import SQLModel, Field, Relationship
 from pgvector.sqlalchemy import Vector
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from models.chat import Conversation
+
 class TenderStatus(StrEnum):
     pending = "pending"
     analyzed = "analyzed"
@@ -19,6 +23,8 @@ class Tender(SQLModel, table=True):
         back_populates="tender",
         sa_relationship_kwargs={"order_by": "File.uploaded_at"},
     )
+
+    conversations: list["Conversation"] = Relationship(back_populates="tender")
     
     # analysis fields (nullable until analyzed):
     title: str | None = None
