@@ -85,7 +85,7 @@ const TenderDetailPageClient = ({ tender }: { tender: TenderDetails }) => {
                     {/* subject */}
                     <div className="mb-7">
                         <SectionLabel>Subject</SectionLabel>
-                        <p className="text-ink-soft m-0 max-w-[620px] text-[15px] leading-[1.65]">
+                        <p className="text-ink-soft m-0 mb-12 text-[15px] leading-[1.65]">
                             {tender.subject_description ?? 'Not analyzed yet.'}
                         </p>
                     </div>
