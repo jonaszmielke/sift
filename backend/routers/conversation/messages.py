@@ -23,7 +23,7 @@ class MessageListResponse(BaseModel):
     messages: list[MessageItem]
     nextCursor: UUID | None
 
-@router.get("/conversations/messages", response_model=MessageListResponse)
+@router.get("/conversations/{conversationId}/messages", response_model=MessageListResponse)
 async def list_messages(
     conversationId: UUID,
     cursorId: UUID | None = None,
