@@ -1,11 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers.tenders import router as tenders_router
-from routers.add_file import router as add_file_router
-from routers.analyze import router as analyze_router
-from routers.rag import router as rag_router
-
+from routers.tender import router as tender_router
 from routers.conversation import router as conversation_router
 
 app = FastAPI()
@@ -18,11 +14,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(tenders_router)
-app.include_router(add_file_router)
-app.include_router(analyze_router)
-app.include_router(rag_router)
-
+app.include_router(tender_router)
 app.include_router(conversation_router)
 
 @app.get("/")

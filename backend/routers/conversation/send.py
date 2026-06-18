@@ -12,7 +12,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from database import get_session
 from config import client, MODEL
 from models import Conversation, MessageRole, Message, Tender, File as FileModel, Chunk
-from services.embeddings import embed_text
+from services.files.embeddings import embed_text
 from services.conversation.generateTitle import generate_title
 
 router = APIRouter()
